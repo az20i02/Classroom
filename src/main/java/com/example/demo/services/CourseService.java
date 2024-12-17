@@ -128,18 +128,19 @@ public class CourseService {
 
 
     public String generateOtpForLesson(Long lessonId) {
-        Lesson lesson = lessonRepository.findById(lessonId).orElseThrow();
+        Lesson lesson = lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new RuntimeException("Lesson with ID " + lessonId + " not found"));
         String otp = otpService.generateOtp();
         lesson.setAttendanceOtp(otp);
         lessonRepository.save(lesson);
+
         return otp;
     }
 
     public boolean markAttendance(Long lessonId, User student, String otp) {
         Lesson lesson = lessonRepository.findById(lessonId).orElseThrow();
         if (lesson.getAttendanceOtp() != null && lesson.getAttendanceOtp().equals(otp)) {
-            // create attendance record
-            // This can be handled in AttendanceService or here
+
             return true;
         }
         return false;

@@ -1,6 +1,8 @@
 package com.example.demo.controllers;
 
+import com.example.demo.dto.AttendRequest;
 import com.example.demo.dto.CourseDto;
+import com.example.demo.dto.LessonDto;
 import com.example.demo.services.CourseService;
 import com.example.demo.services.JwtUtil;
 import com.example.demo.services.UserService;
@@ -103,10 +105,7 @@ public class CourseController {
     }
 
     @PostMapping("/{courseId}/lessons")
-    public void addLesson(@PathVariable Long courseId,
-                          @RequestParam String title,
-                          @RequestParam String videoUrl,
-                          @RequestParam String resourceFile) {
+    public void addLesson(@PathVariable Long courseId, @RequestBody LessonDto lessonDto) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         System.out.println("Authenticated user roles: " + auth.getAuthorities());
 
@@ -119,13 +118,16 @@ public class CourseController {
             throw new RuntimeException("Only instructors or admins can add lessons.");
         }
 
-        courseService.addLessonToCourse(courseId, title, videoUrl, resourceFile);
+        // Pass the DTO data to the service
+        courseService.addLessonToCourse(courseId, lessonDto.getTitle(), lessonDto.getVideoUrl(), lessonDto.getResourceFile());
     }
+
 
     @PostMapping("/lessons/{lessonId}/generate-otp")
     public String generateOtp(@PathVariable Long lessonId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         System.out.println("Authenticated user roles: " + auth.getAuthorities());
+        System.out.println("Lesson ID received: " + lessonId);
 
         boolean isAuthorized = auth.getAuthorities().stream()
                 .anyMatch(grantedAuthority ->
@@ -139,8 +141,9 @@ public class CourseController {
         return courseService.generateOtpForLesson(lessonId);
     }
 
+
     @PostMapping("/lessons/{lessonId}/attend")
-    public boolean attendLesson(@PathVariable Long lessonId, @RequestParam String otp, HttpServletRequest request) {
+    public boolean attendLesson(@PathVariable Long lessonId, @RequestBody AttendRequest attendRequest, HttpServletRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         System.out.println("Authenticated user roles: " + auth.getAuthorities());
 
@@ -153,6 +156,7 @@ public class CourseController {
 
         Long userId = jwtUtil.extractUserId(request);
         User student = userService.findById(userId);
-        return courseService.markAttendance(lessonId, student, otp);
+        return courseService.markAttendance(lessonId, student, attendRequest.getOtp());
     }
+
 }
