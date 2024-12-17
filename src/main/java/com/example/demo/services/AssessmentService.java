@@ -6,6 +6,7 @@ import com.example.demo.dto.QuizSubmissionDto;
 import com.example.demo.repository.*;
 import com.example.demo.tables.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
@@ -21,6 +22,8 @@ public class AssessmentService {
     private final QuestionRepository questionRepository;
     private final QuizAttemptRepository quizAttemptRepository;
     private final SubmissionRepository submissionRepository;
+    @Autowired
+    private NotificationService notificationService;
 
     public AssessmentDto createAssessment(AssessmentDto dto, User instructor) {
         Course c = courseRepository.findById(dto.getCourseId()).orElseThrow();
@@ -93,7 +96,7 @@ public class AssessmentService {
         return submissionRepository.save(submission);
     }
 
-    public AssignmentSubmission gradeAssignment(Long submissionId, Double grade, String feedback, User instructor) {
+    public AssignmentSubmission gradeAssignment(Long submissionId,Long studentId ,Double grade, String feedback, User instructor) {
         AssignmentSubmission sub = submissionRepository.findById(submissionId).orElseThrow();
         // verify instructor is the assignment's course instructor
         if (!sub.getAssignment().getCourse().getInstructor().getId().equals(instructor.getId()) && instructor.getRole()!=UserRole.ADMIN) {
@@ -101,6 +104,7 @@ public class AssessmentService {
         }
         sub.setGrade(grade);
         sub.setFeedback(feedback);
+        notificationService.sendNotification(studentId, "Your assignment has been graded. Grade: " + grade);
         return submissionRepository.save(sub);
     }
 }

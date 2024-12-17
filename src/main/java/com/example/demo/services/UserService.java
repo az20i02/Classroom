@@ -31,6 +31,7 @@ public class UserService {
     }
 
     public String login(LoginDto loginDto) {
+        System.out.println("Hi : "+loginDto.getUsername());
         User user = userRepository.findByUsername(loginDto.getUsername()).orElse(null);
         if (user != null && passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
             return jwtUtil.generateToken(user); // Use the injected instance

@@ -39,14 +39,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 String role = jwtUtil.extractUserRole(request);
 
                 // Dynamically add ROLE_ prefix
-                String prefixedRole = "ROLE_" + role;
+//                String prefixedRole =  role;
 
                 // Add role to Security Context for Spring Security to recognize
                 UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userId, null, List.of(new SimpleGrantedAuthority(prefixedRole)));
+                        new UsernamePasswordAuthenticationToken(userId, null, List.of(new SimpleGrantedAuthority(role)));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
 
-                System.out.println("UserId: " + userId + ", Role: " + prefixedRole);
+                System.out.println("UserId: " + userId + ", Role: " + role);
             } catch (Exception e) {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid Token");
                 return;
